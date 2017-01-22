@@ -4,6 +4,7 @@ import Svg
 import Svg.Attributes
 import Plot.Attributes exposing (..)
 import Internal.Draw exposing (..)
+import Plot.Types as Types exposing (..)
 
 
 view : Plot -> Line msg -> List Point -> Svg.Svg msg

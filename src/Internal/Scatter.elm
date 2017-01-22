@@ -4,13 +4,14 @@ import Svg
 import Svg.Attributes
 import Internal.Scale exposing (..)
 import Plot.Attributes exposing (..)
+import Plot.Types as Types exposing (..)
 
 
 view : Plot -> Scatter a -> List Point -> Svg.Svg a
 view plot { fill, stroke, radius } points =
     let
         svgPoints =
-            List.map (toSvgCoords plot) points
+            List.map (toSvgCoords plot.scales) points
     in
         Svg.g
             [ Svg.Attributes.fill fill

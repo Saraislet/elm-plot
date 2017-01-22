@@ -4,6 +4,7 @@ import Svg
 import Plot.Attributes exposing (..)
 import Internal.Draw as Draw exposing (..)
 import Internal.Line as Line
+import Plot.Types as Types exposing (..)
 
 
 getValues : List Float -> ValuesOption -> List Float

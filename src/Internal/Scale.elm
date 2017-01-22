@@ -1,7 +1,28 @@
 module Internal.Scale exposing (..)
 
-import Internal.Types exposing (..)
-import Plot.Attributes exposing (..)
+import Plot.Types exposing (..)
+
+
+type alias Edges =
+    { lower : Float
+    , upper : Float
+    }
+
+
+type alias Oriented a =
+    { x : a
+    , y : a
+    }
+
+
+type alias Scale =
+    { values : List Float
+    , ticks : List Float
+    , bounds : Edges
+    , padding : Edges
+    , offset : Edges
+    , length : Float
+    }
 
 
 unzipPoints : List Point -> Oriented (List Value)
@@ -62,16 +83,6 @@ strechBounds values bounds =
     }
 
 
-updateTicks : Orientation -> Oriented Scale -> List Value -> Oriented Scale
-updateTicks orientation scales ticks =
-    case orientation of
-        X ->
-            Oriented (updateScaleTicks scales.x ticks) scales.y
-
-        Y ->
-            Oriented scales.x (updateScaleTicks scales.y ticks)
-
-
 updateScaleTicks : Scale -> List Value -> Scale
 updateScaleTicks scale ticks =
     { scale | ticks = ticks }
@@ -87,32 +98,22 @@ unScaleValue ({ length, bounds, offset } as scale) v =
     ((v - offset.lower) * (getRange scale) / length) + bounds.lower
 
 
-fromSvgCoords : Scale -> Scale -> Point -> Point
-fromSvgCoords xScale yScale ( x, y ) =
-    ( unScaleValue xScale x
-    , unScaleValue yScale (yScale.length - y)
+fromSvgCoords : Oriented Scale -> Point -> Point
+fromSvgCoords scales ( x, y ) =
+    ( unScaleValue scales.x x
+    , unScaleValue scales.y (scales.y.length - y)
     )
 
 
-toSvgCoordsOriented : Orientation -> Plot -> Point -> Point
-toSvgCoordsOriented orientation =
-    case orientation of
-        X ->
-            toSvgCoords
-
-        Y ->
-            toSvgCoordsFlipped
-
-
-toSvgCoords : Plot -> Point -> Point
-toSvgCoords { scales } ( x, y ) =
+toSvgCoords : Oriented Scale -> Point -> Point
+toSvgCoords scales ( x, y ) =
     ( scaleValue scales.x (x - scales.x.bounds.lower)
     , scaleValue scales.y (scales.y.bounds.upper - y)
     )
 
 
-toSvgCoordsFlipped : Plot -> Point -> Point
-toSvgCoordsFlipped { scales } ( x, y ) =
+toSvgCoordsFlipped : Oriented Scale -> Point -> Point
+toSvgCoordsFlipped scales ( x, y ) =
     ( scaleValue scales.y (y - scales.y.bounds.lower)
     , scaleValue scales.x (scales.x.bounds.upper - x)
     )
@@ -191,21 +192,26 @@ getClosest value candidate closest =
             Just candidate
 
 
-toNearestX : Plot -> Float -> Maybe Float
-toNearestX plot value =
-    List.foldr (getClosest value) Nothing plot.scales.x.values
+toNearestX : Oriented Scale -> Float -> Maybe Float
+toNearestX scales value =
+    List.foldr (getClosest value) Nothing scales.x.values
 
 
-flipOriented : Oriented a -> Oriented a
-flipOriented { x, y } =
-    { x = y, y = x }
+updatePadding : ( Int, Int ) -> Scale -> Scale
+updatePadding ( bottom, top ) scale =
+    { scale | padding = Edges (toFloat bottom) (toFloat top) }
 
 
-foldOriented : (a -> a) -> Orientation -> Oriented a -> Oriented a
-foldOriented fold orientation old =
-    case orientation of
-        X ->
-            { old | x = fold old.x }
+updateLength : Int -> Scale -> Scale
+updateLength length scale =
+    { scale | length = toFloat length }
 
-        Y ->
-            { old | y = fold old.y }
+
+updateOffset : Int -> Int -> Scale -> Scale
+updateOffset lower upper scale =
+    { scale | offset = Edges (toFloat lower) (toFloat upper) }
+
+
+applyBounds : (Float -> Float) -> (Float -> Float) -> Scale -> Scale
+applyBounds toLower toUpper scale =
+    { scale | offset = Edges (toLower scale.bounds.lower) (toUpper scale.bounds.lower) }

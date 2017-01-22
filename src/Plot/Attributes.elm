@@ -58,17 +58,13 @@ module Plot.Attributes
         , Hint
         , defaultHintConfig
         , HintInfo
-        , Point
-        , Value
-        , Style
         , Orientation(..)
         , Plot
         , defaultConfig
         , margin
-        , paddingY
+        , padding
         , id
-        , width2
-        , height
+        , size
         , style
         , domainLowest
         , domainHighest
@@ -82,29 +78,13 @@ module Plot.Attributes
 import Svg
 import Html
 import Internal.View as View
-import Internal.Types as Types exposing (..)
+import Internal.Scale as Scale exposing (..)
+import Plot.Types as Types exposing (..)
 
 
 {-| -}
 type alias Attribute a =
     a -> a
-
-
-{-| -}
-type alias Value =
-    Float
-
-
-{-| Convenience type to represent coordinates.
--}
-type alias Point =
-    ( Float, Float )
-
-
-{-| Convenience type to represent style.
--}
-type alias Style =
-    List ( String, String )
 
 
 {-| -}
@@ -149,23 +129,16 @@ defaultScale length =
 
  Default: `( 0, 0 )`
 -}
-paddingY : ( Int, Int ) -> Attribute Plot
-paddingY padding config =
+padding : ( Int, Int ) -> Attribute Plot
+padding padding config =
     { config | scales = Oriented config.scales.x (updatePadding padding config.scales.y) }
 
 
 {-| Specify the size of your plot in pixels
 -}
-width : Int -> Attribute Plot
-width width config =
-    { config | scales = Oriented (updateLength width config.scales.x) config.scales.y }
-
-
-{-| Specify the size of your plot in pixels
--}
-height : Int -> Attribute Plot
-height height config =
-    { config | scales = Oriented config.scales.x (updateLength height config.scales.y) }
+size : ( Int, Int ) -> Attribute Plot
+size ( width, height ) config =
+    { config | scales = Oriented (updateLength width config.scales.x) (updateLength height config.scales.y) }
 
 
 {-| Specify margin around the plot. Useful when your ticks are outside the
@@ -191,26 +164,6 @@ style style config =
 id : String -> Attribute Plot
 id id config =
     { config | id = id }
-
-
-updatePadding : ( Int, Int ) -> Scale -> Scale
-updatePadding ( bottom, top ) scale =
-    { scale | padding = Edges (toFloat bottom) (toFloat top) }
-
-
-updateLength : Int -> Scale -> Scale
-updateLength length scale =
-    { scale | length = toFloat length }
-
-
-updateOffset : Int -> Int -> Scale -> Scale
-updateOffset lower upper scale =
-    { scale | offset = Edges (toFloat lower) (toFloat upper) }
-
-
-applyBounds : (Float -> Float) -> (Float -> Float) -> Scale -> Scale
-applyBounds toLower toUpper scale =
-    { scale | offset = Edges (toLower scale.bounds.lower) (toUpper scale.bounds.lower) }
 
 
 {-| Alter the domain's lower boundary. The function provided will

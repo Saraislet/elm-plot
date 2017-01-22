@@ -8,10 +8,12 @@ module Internal.Bars
 import Svg
 import Svg.Attributes
 import Plot.Attributes as Attributes exposing (..)
-import Plot.Attributes as Attributes exposing (Point, Orientation(..), MaxWidth(..))
+import Plot.Attributes as Attributes exposing (Orientation(..), MaxWidth(..))
+import Plot.Types as Types exposing (..)
 import Internal.Draw exposing (..)
 import Internal.Scale exposing (..)
 import Internal.Label as Label
+import Plot.Types as Types exposing (..)
 
 
 -- VIEW
@@ -99,13 +101,13 @@ toStackedCoords plot config styleConfigs width group bar =
     case config.stackBy of
         X ->
             ( bar.xValue, max (min 0 plot.scales.y.bounds.upper) bar.yValue )
-                |> toSvgCoords plot
+                |> toSvgCoords plot.scales
                 |> addDisplacement ( toXStackedOffset styleConfigs width bar, 0 )
 
         Y ->
             ( bar.xValue, bar.yValue )
                 |> addDisplacement ( 0, toYStackedOffset group bar )
-                |> toSvgCoords plot
+                |> toSvgCoords plot.scales
                 |> addDisplacement
                     ( -width / 2
                     , min 0 (toLength plot config bar)

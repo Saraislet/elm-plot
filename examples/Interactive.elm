@@ -6,9 +6,6 @@ import Svg.Attributes
 import Html exposing (h1, p, text, div, node)
 import Html.Attributes
 import Plot exposing (..)
-import Plot.Line as Line
-import Plot.Axis as Axis
-import Plot.Label as Label
 
 
 -- MODEL
@@ -88,18 +85,18 @@ viewPlot state =
             , style [ ( "position", "relative" ) ]
             ]
             [ line
-                [ Line.stroke "blue"
-                , Line.strokeWidth 2
+                [ stroke "blue"
+                , strokeWidth 2
                 ]
                 data1
             , line
-                [ Line.stroke "red"
-                , Line.strokeWidth 2
+                [ stroke "red"
+                , strokeWidth 2
                 ]
                 data2
             , xAxis
                 [ Axis.line
-                    [ Line.stroke "grey" ]
+                    [ stroke "grey" ]
                 , Axis.tickDelta 1
                 , Axis.label
                     [ Label.format (always "Click me!")
@@ -111,7 +108,6 @@ viewPlot state =
                         ]
                     ]
                 ]
-            , hint [] (getHoveredValue state)
             ]
         ]
 

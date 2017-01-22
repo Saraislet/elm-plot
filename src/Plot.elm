@@ -2,6 +2,8 @@ module Plot
     exposing
         ( plot
         , plotInteractive
+        , xAxis
+        , yAxis
         , verticalGrid
         , horizontalGrid
         , hint
@@ -33,13 +35,10 @@ module Plot
 @docs  Element
 
 # Elements
-@docs plot, plotInteractive, hint, verticalGrid, horizontalGrid, custom
+@docs plot, plotInteractive, hint, verticalGrid, horizontalGrid, custom, xAxis, yAxis
 
 ## Series
 @docs scatter, line, area, bars
-
-# Styling and sizes
-@docs id, classes, margin, padding, size, style, domainLowest, domainHighest, rangeLowest, rangeHighest
 
 # State
 For an example of the update flow see [this example](https://github.com/terezka/elm-plot/blob/master/examples/Interactive.elm).
@@ -58,16 +57,17 @@ import Svg.Lazy
 import Json.Decode as Json
 import DOM
 import Plot.Bars as Bars
+import Internal.Axis as AxisInternal
 import Internal.Grid as GridInternal
 import Internal.Bars as BarsInternal
 import Internal.Area as AreaInternal
 import Internal.Scatter as ScatterInternal
 import Internal.Line as LineInternal
 import Internal.Hint as HintInternal
-import Internal.Types exposing (..)
 import Internal.Draw exposing (..)
 import Internal.Scale exposing (..)
 import Plot.Attributes as Attributes exposing (..)
+import Plot.Types as Types exposing (..)
 
 
 {-| Represents a child element of the plot.
@@ -79,7 +79,20 @@ type Element msg
     | Scatter (Scatter msg) (List Point)
     | Hint (Hint msg) (Maybe Point)
     | Grid (Grid msg)
+    | Axis (Axis msg)
     | CustomElement ((Point -> Point) -> Svg.Svg msg)
+
+
+{-| -}
+xAxis : List (Attribute (Axis msg)) -> Element msg
+xAxis attrs =
+    Axis (List.foldl (<|) defaultAxisConfig attrs)
+
+
+{-| -}
+yAxis : List (Attribute (Axis msg)) -> Element msg
+yAxis attrs =
+    Axis (List.foldl (<|) { defaultAxisConfig | orientation = Y } attrs)
 
 
 {-| -}
@@ -159,10 +172,10 @@ plotInteractive attrs elements =
 
 
 toPlotConfig : List (Attribute Plot) -> List (Element msg) -> Plot
-toPlotConfig attributes elements =
+toPlotConfig attrs elements =
     defaultConfig
         |> applyElements elements
-        |> applyAttributes attributes
+        |> applyAttributes attrs
 
 
 
@@ -234,9 +247,9 @@ getRelativePosition : Plot -> ( Float, Float ) -> ( Float, Float ) -> ( Maybe Fl
 getRelativePosition plot ( mouseX, mouseY ) ( left, top ) =
     let
         ( x, y ) =
-            fromSvgCoords plot ( mouseX - left, mouseY - top )
+            fromSvgCoords plot.scales ( mouseX - left, mouseY - top )
     in
-        ( toNearestX plot x, y )
+        ( toNearestX plot.scales x, y )
 
 
 handleMouseOver : Plot -> Json.Decoder (Interaction msg)
@@ -290,7 +303,7 @@ parsePlot plot elements =
 
 
 parsePlotInteractive : Plot -> List (Element (Interaction msg)) -> Svg (Interaction msg)
-parsePlotInteractive config elements =
+parsePlotInteractive plot elements =
     viewPlotInteractive plot (viewElements plot elements)
 
 
@@ -338,10 +351,10 @@ scaleDefs plot =
     Svg.defs []
         [ Svg.clipPath [ Svg.Attributes.id (toClipPathId plot) ]
             [ Svg.rect
-                [ Svg.Attributes.x (toString plot.scale.x.offset.lower)
-                , Svg.Attributes.y (toString plot.scale.y.offset.lower)
-                , Svg.Attributes.width (toString plot.scale.x.length)
-                , Svg.Attributes.height (toString plot.scale.y.length)
+                [ Svg.Attributes.x (toString plot.scales.x.offset.lower)
+                , Svg.Attributes.y (toString plot.scales.y.offset.lower)
+                , Svg.Attributes.width (toString plot.scales.x.length)
+                , Svg.Attributes.height (toString plot.scales.y.length)
                 ]
                 []
             ]
@@ -350,7 +363,7 @@ scaleDefs plot =
 
 sizeStyle : Oriented Scale -> Style
 sizeStyle scales =
-    [ ( "height", toPixels scales.y.lenght ), ( "width", toPixels scales.x.lenght ) ]
+    [ ( "height", toPixels scales.y.length ), ( "width", toPixels scales.x.length ) ]
 
 
 viewElements : Plot -> List (Element msg) -> ( List (Svg msg), List (Html msg) )
@@ -360,7 +373,39 @@ viewElements plot elements =
 
 viewElement : Plot -> Element msg -> ( List (Svg msg), List (Html msg) ) -> ( List (Svg msg), List (Html msg) )
 viewElement plot element ( svgViews, htmlViews ) =
-    ( [], [] )
+    case element of
+        Line config points ->
+            ( (LineInternal.view plot config points) :: svgViews, htmlViews )
+
+        Area config points ->
+            ( (AreaInternal.view plot config points) :: svgViews, htmlViews )
+
+        Scatter config points ->
+            ( (ScatterInternal.view plot config points) :: svgViews, htmlViews )
+
+        Bars config styleConfigs groups ->
+            ( (BarsInternal.view plot config styleConfigs groups) :: svgViews, htmlViews )
+
+        Axis ({ orientation } as config) ->
+            ( (AxisInternal.view plot config) :: svgViews, htmlViews )
+
+        Grid ({ orientation } as config) ->
+            ( (GridInternal.view plot config) :: svgViews, htmlViews )
+
+        CustomElement view ->
+            ( (view (toSvgCoords plot.scales) :: svgViews), htmlViews )
+
+        Hint config position ->
+            case position of
+                Just point ->
+                    let
+                        ( line, hint ) =
+                            HintInternal.view plot config point
+                    in
+                        ( line :: svgViews, hint :: htmlViews )
+
+                Nothing ->
+                    ( svgViews, htmlViews )
 
 
 
@@ -370,14 +415,16 @@ viewElement plot element ( svgViews, htmlViews ) =
 applyElements : List (Element msg) -> Plot -> Plot
 applyElements elements plot =
     { plot
-        | scales = List.foldl toScales elements plot.scales
+        | scales = List.foldl toScales plot.scales elements
         , getHintInfo = getHintInfo elements
     }
 
 
+{-| List.foldl (|>) plot attrs !TODO: This breaks compiler
+-}
 applyAttributes : List (Attribute Plot) -> Plot -> Plot
-applyAttributes =
-    List.foldl (|>)
+applyAttributes attrs plot =
+    List.foldr (<|) plot attrs
 
 
 toScales : Element msg -> Oriented Scale -> Oriented Scale

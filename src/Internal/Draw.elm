@@ -19,7 +19,8 @@ module Internal.Draw
 import Svg exposing (Svg, Attribute)
 import Svg.Attributes
 import Internal.Scale exposing (..)
-import Plot.Attributes exposing (Plot, Orientation(..), Point, InterpolationOption(..))
+import Plot.Attributes exposing (Plot, Orientation(..), InterpolationOption(..))
+import Plot.Types as Types exposing (..)
 
 
 {- Common drawing functions. -}
@@ -119,7 +120,7 @@ pointToString : Plot -> Point -> String
 pointToString plot point =
     let
         ( x, y ) =
-            toSvgCoords plot point
+            toSvgCoords plot.scales point
     in
         (toString x) ++ "," ++ (toString y)
 

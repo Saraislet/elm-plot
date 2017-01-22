@@ -6,13 +6,22 @@ module Internal.Axis
         , getDelta
         )
 
-import Internal.Types exposing (Scale)
 import Internal.Tick as Tick
 import Internal.Label as Label
 import Internal.Line as Line
 import Internal.Draw as Draw exposing (..)
 import Internal.Scale exposing (..)
-import Plot.Attributes as Attributes exposing (Plot, Point, Value, Orientation(..), Axis, AxisLabelInfo, AnchorOption(..), PositionOption(..), ValuesOption(..))
+import Plot.Types as Types exposing (..)
+import Plot.Attributes as Attributes
+    exposing
+        ( Plot
+        , Orientation(..)
+        , Axis
+        , AxisLabelInfo
+        , AnchorOption(..)
+        , PositionOption(..)
+        , ValuesOption(..)
+        )
 import Svg
 import Svg.Attributes
 import Round
@@ -79,7 +88,7 @@ viewLabel plot config axisPosition info view =
 
 getLabelPosition : Plot -> Axis msg -> Float -> AxisLabelInfo -> String
 getLabelPosition plot { orientation, anchor } axisPosition info =
-    toSvgCoords plot ( info.value, axisPosition )
+    toSvgCoords plot.scales ( info.value, axisPosition )
         |> addDisplacement (getDisplacement anchor orientation)
         |> toTranslate
 
@@ -91,7 +100,7 @@ getLabelPosition plot { orientation, anchor } axisPosition info =
 placeTick : Plot -> Axis msg -> Float -> (AxisLabelInfo -> Svg.Svg msg) -> AxisLabelInfo -> Svg.Svg msg
 placeTick plot ({ orientation, anchor } as config) axisPosition view info =
     Svg.g
-        [ Svg.Attributes.transform <| (toTranslate <| toSvgCoords plot ( info.value, axisPosition )) ++ " " ++ (toRotate anchor orientation)
+        [ Svg.Attributes.transform <| (toTranslate <| toSvgCoords plot.scales ( info.value, axisPosition )) ++ " " ++ (toRotate anchor orientation)
         , Svg.Attributes.class "elm-plot__axis__tick"
         ]
         [ view info ]

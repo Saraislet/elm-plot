@@ -8,6 +8,7 @@ import Html
 import Html.Attributes
 import Plot.Attributes exposing (Orientation(..))
 import Plot.Attributes exposing (..)
+import Plot.Types as Types exposing (..)
 
 
 view : Plot -> Hint msg -> ( Float, Float ) -> ( Svg.Svg msg, Html.Html msg )
@@ -23,7 +24,7 @@ view plot { lineStyle, view } position =
             Maybe.withDefault defaultView view
 
         ( xSvg, ySvg ) =
-            toSvgCoords plot ( info.xValue, 0 )
+            toSvgCoords plot.scales ( info.xValue, 0 )
 
         isLeftSide =
             xSvg - plot.scales.x.offset.lower < plot.scales.x.length / 2
