@@ -14,6 +14,7 @@ import PlotBars
 import PlotSticky
 import PlotHint
 import PlotSmooth
+import PlotLines
 
 
 -- MODEL
@@ -96,7 +97,7 @@ view model =
     div
         [ class "view" ]
         [ viewTitle
-        , viewExampleLarge model
+          --, viewExampleLarge model
         , div [] (List.map (viewExample model) examples)
         , viewFooter
         ]

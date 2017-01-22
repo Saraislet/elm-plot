@@ -1,8 +1,8 @@
-module PlotStyles exposing (plotExample)
+module PlotLines exposing (plotExample)
 
 import Svg
 import Plot exposing (..)
-import Plot.Attributes as Attributes
+import Plot.Attributes as Attributes exposing (..)
 import Common exposing (..)
 
 
@@ -27,35 +27,40 @@ id =
 
 data1 : List ( Float, Float )
 data1 =
-    [ ( 0, 2 ), ( 1, 4 ), ( 2, 5 ), ( 3, 10 ) ]
+    [ ( 0, 0 ), ( 1, 0 ) ]
 
 
 data2 : List ( Float, Float )
 data2 =
-    [ ( 0, 0 ), ( 1, 5 ), ( 2, 7 ), ( 3, 15 ) ]
+    [ ( 0, 2 ), ( 1, 2 ) ]
 
 
 view : Svg.Svg a
 view =
     plot
-        [ size plotSize
-        , margin ( 10, 20, 40, 20 )
-        , domainLowest (min 0)
+        [ size ( 400, 300 )
+        , margin ( 30, 30, 30, 30 )
+        , Attributes.id "lines"
         ]
         [ line
-            [ Attributes.stroke blueStroke
-            , Attributes.strokeWidth 2
+            [ stroke blueStroke
+            , strokeWidth 2
             ]
             data1
         , line
-            [ Attributes.stroke pinkStroke
-            , Attributes.strokeWidth 2
+            [ stroke pinkStroke
+            , strokeWidth 2
             ]
             data2
         , xAxis
-            [ Attributes.lineStyle
-                [ Attributes.stroke axisColor ]
-            , Axis.tickDelta 1
+            [ lineStyle
+                [ stroke axisColor ]
+            , tick [ values (ValuesFromDelta 1) ]
+            ]
+        , yAxis
+            [ lineStyle
+                [ stroke axisColor ]
+            , tick [ values (ValuesFromDelta 1) ]
             ]
         ]
 
@@ -81,7 +86,7 @@ code =
                 ]
                 data2
             , xAxis
-                [ Attributes.lineStyle
+                [ lineStyle
                     [ Style.stroke axisColor ]
                 , Axis.tickDelta 1
                 ]

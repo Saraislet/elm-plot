@@ -12,6 +12,7 @@ import Internal.Line as Line
 import Internal.Draw as Draw exposing (..)
 import Internal.Scale exposing (..)
 import Plot.Types as Types exposing (..)
+import Internal.Types exposing (..)
 import Plot.Attributes as Attributes
     exposing
         ( Plot
@@ -88,7 +89,7 @@ viewLabel plot config axisPosition info view =
 
 getLabelPosition : Plot -> Axis msg -> Float -> AxisLabelInfo -> String
 getLabelPosition plot { orientation, anchor } axisPosition info =
-    toSvgCoords plot.scales ( info.value, axisPosition )
+    plot.scales.x.toSvgCoords ( info.value, axisPosition )
         |> addDisplacement (getDisplacement anchor orientation)
         |> toTranslate
 
@@ -100,7 +101,7 @@ getLabelPosition plot { orientation, anchor } axisPosition info =
 placeTick : Plot -> Axis msg -> Float -> (AxisLabelInfo -> Svg.Svg msg) -> AxisLabelInfo -> Svg.Svg msg
 placeTick plot ({ orientation, anchor } as config) axisPosition view info =
     Svg.g
-        [ Svg.Attributes.transform <| (toTranslate <| toSvgCoords plot.scales ( info.value, axisPosition )) ++ " " ++ (toRotate anchor orientation)
+        [ Svg.Attributes.transform <| (toTranslate <| plot.scales.x.toSvgCoords ( info.value, axisPosition )) ++ " " ++ (toRotate anchor orientation)
         , Svg.Attributes.class "elm-plot__axis__tick"
         ]
         [ view info ]

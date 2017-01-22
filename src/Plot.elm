@@ -68,6 +68,7 @@ import Internal.Draw exposing (..)
 import Internal.Scale exposing (..)
 import Plot.Attributes as Attributes exposing (..)
 import Plot.Types as Types exposing (..)
+import Internal.Types exposing (..)
 
 
 {-| Represents a child element of the plot.
@@ -176,6 +177,7 @@ toPlotConfig attrs elements =
     defaultConfig
         |> applyElements elements
         |> applyAttributes attrs
+        |> postProcessPlot
 
 
 
@@ -247,7 +249,7 @@ getRelativePosition : Plot -> ( Float, Float ) -> ( Float, Float ) -> ( Maybe Fl
 getRelativePosition plot ( mouseX, mouseY ) ( left, top ) =
     let
         ( x, y ) =
-            fromSvgCoords plot.scales ( mouseX - left, mouseY - top )
+            plot.scales.x.fromSvgCoords ( mouseX - left, mouseY - top )
     in
         ( toNearestX plot.scales x, y )
 
@@ -339,8 +341,8 @@ plotAttributesInteraction plot =
 viewSvg : Plot -> List (Svg msg) -> Svg msg
 viewSvg plot views =
     Svg.svg
-        [ Svg.Attributes.height (toString plot.scales.y.length)
-        , Svg.Attributes.width (toString plot.scales.x.length)
+        [ Svg.Attributes.height (toString plot.scales.y.lengthTotal)
+        , Svg.Attributes.width (toString plot.scales.x.lengthTotal)
         , Svg.Attributes.class "elm-plot__inner"
         ]
         (scaleDefs plot :: views)
@@ -387,13 +389,13 @@ viewElement plot element ( svgViews, htmlViews ) =
             ( (BarsInternal.view plot config styleConfigs groups) :: svgViews, htmlViews )
 
         Axis ({ orientation } as config) ->
-            ( (AxisInternal.view plot config) :: svgViews, htmlViews )
+            ( (AxisInternal.view (flipPlotToOrientation orientation plot) config) :: svgViews, htmlViews )
 
         Grid ({ orientation } as config) ->
-            ( (GridInternal.view plot config) :: svgViews, htmlViews )
+            ( (GridInternal.view (flipPlotToOrientation orientation plot) config) :: svgViews, htmlViews )
 
         CustomElement view ->
-            ( (view (toSvgCoords plot.scales) :: svgViews), htmlViews )
+            ( (view plot.scales.x.toSvgCoords :: svgViews), htmlViews )
 
         Hint config position ->
             case position of

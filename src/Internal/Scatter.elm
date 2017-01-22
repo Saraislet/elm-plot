@@ -11,7 +11,7 @@ view : Plot -> Scatter a -> List Point -> Svg.Svg a
 view plot { fill, stroke, radius } points =
     let
         svgPoints =
-            List.map (toSvgCoords plot.scales) points
+            List.map (plot.scales.x.toSvgCoords) points
     in
         Svg.g
             [ Svg.Attributes.fill fill

@@ -24,7 +24,7 @@ view plot { lineStyle, view } position =
             Maybe.withDefault defaultView view
 
         ( xSvg, ySvg ) =
-            toSvgCoords plot.scales ( info.xValue, 0 )
+            plot.scales.x.toSvgCoords ( info.xValue, 0 )
 
         isLeftSide =
             xSvg - plot.scales.x.offset.lower < plot.scales.x.length / 2

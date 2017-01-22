@@ -101,13 +101,13 @@ toStackedCoords plot config styleConfigs width group bar =
     case config.stackBy of
         X ->
             ( bar.xValue, max (min 0 plot.scales.y.bounds.upper) bar.yValue )
-                |> toSvgCoords plot.scales
+                |> plot.scales.x.toSvgCoords
                 |> addDisplacement ( toXStackedOffset styleConfigs width bar, 0 )
 
         Y ->
             ( bar.xValue, bar.yValue )
                 |> addDisplacement ( 0, toYStackedOffset group bar )
-                |> toSvgCoords plot.scales
+                |> plot.scales.x.toSvgCoords
                 |> addDisplacement
                     ( -width / 2
                     , min 0 (toLength plot config bar)

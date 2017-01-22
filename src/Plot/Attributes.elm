@@ -78,8 +78,8 @@ module Plot.Attributes
 import Svg
 import Html
 import Internal.View as View
-import Internal.Scale as Scale exposing (..)
 import Plot.Types as Types exposing (..)
+import Internal.Types exposing (..)
 
 
 {-| -}
@@ -118,8 +118,11 @@ defaultScale length =
     , offset = { lower = 0, upper = 0 }
     , padding = { lower = 0, upper = 0 }
     , ticks = []
+    , lengthTotal = length
     , length = length
     , values = []
+    , toSvgCoords = identity
+    , fromSvgCoords = identity
     }
 
 
@@ -149,7 +152,7 @@ the format is `( top, right, bottom, left )`.
 -}
 margin : ( Int, Int, Int, Int ) -> Attribute Plot
 margin ( t, r, b, l ) config =
-    { config | scales = Oriented (updateOffset l r config.scales.x) (updateOffset b t config.scales.y) }
+    { config | scales = Oriented (updateOffset l r config.scales.x) (updateOffset t b config.scales.y) }
 
 
 {-| Adds styles to the svg element.
@@ -212,6 +215,30 @@ rangeLowest toLowest config =
 rangeHighest : (Float -> Float) -> Attribute Plot
 rangeHighest toHighest config =
     { config | scales = Oriented (applyBounds identity toHighest config.scales.x) config.scales.y }
+
+
+updatePadding : ( Int, Int ) -> Scale -> Scale
+updatePadding ( bottom, top ) scale =
+    { scale | padding = Edges (toFloat bottom) (toFloat top) }
+
+
+updateLength : Int -> Scale -> Scale
+updateLength length scale =
+    { scale | lengthTotal = toFloat length }
+
+
+updateOffset : Int -> Int -> Scale -> Scale
+updateOffset lower upper scale =
+    { scale | offset = Edges (toFloat lower) (toFloat upper) }
+
+
+applyBounds : (Float -> Float) -> (Float -> Float) -> Scale -> Scale
+applyBounds toLower toUpper scale =
+    { scale | bounds = Edges (toLower scale.bounds.lower) (toUpper scale.bounds.upper) }
+
+
+
+--- STYLE ATTRIBUTES
 
 
 {-| Set the stroke color.

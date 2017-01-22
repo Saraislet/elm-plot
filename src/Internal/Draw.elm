@@ -120,7 +120,7 @@ pointToString : Plot -> Point -> String
 pointToString plot point =
     let
         ( x, y ) =
-            toSvgCoords plot.scales point
+            plot.scales.x.toSvgCoords point
     in
         (toString x) ++ "," ++ (toString y)
 

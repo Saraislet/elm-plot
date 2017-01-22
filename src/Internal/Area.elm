@@ -2,7 +2,7 @@ module Internal.Area exposing (..)
 
 import Svg
 import Svg.Attributes
-import Internal.Scale exposing (getEdgesX, toSvgCoords)
+import Internal.Scale exposing (getEdgesX)
 import Internal.Draw exposing (PathType(..), toPath, toLinePath, toStyle, toClipPathId)
 import Plot.Attributes exposing (Plot, Area, InterpolationOption(..))
 import Plot.Types as Types exposing (..)

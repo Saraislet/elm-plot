@@ -1,28 +1,8 @@
 module Internal.Scale exposing (..)
 
 import Plot.Types exposing (..)
-
-
-type alias Edges =
-    { lower : Float
-    , upper : Float
-    }
-
-
-type alias Oriented a =
-    { x : a
-    , y : a
-    }
-
-
-type alias Scale =
-    { values : List Float
-    , ticks : List Float
-    , bounds : Edges
-    , padding : Edges
-    , offset : Edges
-    , length : Float
-    }
+import Plot.Attributes exposing (..)
+import Internal.Types exposing (..)
 
 
 unzipPoints : List Point -> Oriented (List Value)
@@ -83,6 +63,16 @@ strechBounds values bounds =
     }
 
 
+updateTicks : Orientation -> Oriented Scale -> List Value -> Oriented Scale
+updateTicks orientation scales ticks =
+    case orientation of
+        X ->
+            Oriented (updateScaleTicks scales.x ticks) scales.y
+
+        Y ->
+            Oriented scales.x (updateScaleTicks scales.y ticks)
+
+
 updateScaleTicks : Scale -> List Value -> Scale
 updateScaleTicks scale ticks =
     { scale | ticks = ticks }
@@ -98,25 +88,28 @@ unScaleValue ({ length, bounds, offset } as scale) v =
     ((v - offset.lower) * (getRange scale) / length) + bounds.lower
 
 
-fromSvgCoords : Oriented Scale -> Point -> Point
-fromSvgCoords scales ( x, y ) =
+fromSvgCoordsX : Oriented Scale -> Point -> Point
+fromSvgCoordsX scales ( x, y ) =
     ( unScaleValue scales.x x
     , unScaleValue scales.y (scales.y.length - y)
     )
 
 
-toSvgCoords : Oriented Scale -> Point -> Point
-toSvgCoords scales ( x, y ) =
+fromSvgCoordsY : Oriented Scale -> Point -> Point
+fromSvgCoordsY scales ( x, y ) =
+    fromSvgCoordsX scales ( y, x )
+
+
+toSvgCoordsX : Oriented Scale -> Point -> Point
+toSvgCoordsX scales ( x, y ) =
     ( scaleValue scales.x (x - scales.x.bounds.lower)
     , scaleValue scales.y (scales.y.bounds.upper - y)
     )
 
 
-toSvgCoordsFlipped : Oriented Scale -> Point -> Point
-toSvgCoordsFlipped scales ( x, y ) =
-    ( scaleValue scales.y (y - scales.y.bounds.lower)
-    , scaleValue scales.x (scales.x.bounds.upper - x)
-    )
+toSvgCoordsY : Oriented Scale -> Point -> Point
+toSvgCoordsY scales ( x, y ) =
+    toSvgCoordsX scales ( y, x )
 
 
 getHighest : List Float -> Float
@@ -135,18 +128,6 @@ getRange { bounds } =
         bounds.upper - bounds.lower
     else
         1
-
-
-foldBounds : Maybe Edges -> Edges -> Edges
-foldBounds oldBounds newBounds =
-    case oldBounds of
-        Just bounds ->
-            { lower = min bounds.lower newBounds.lower
-            , upper = max bounds.upper newBounds.upper
-            }
-
-        Nothing ->
-            newBounds
 
 
 getEdgesX : List Point -> ( Float, Float )
@@ -197,21 +178,41 @@ toNearestX scales value =
     List.foldr (getClosest value) Nothing scales.x.values
 
 
-updatePadding : ( Int, Int ) -> Scale -> Scale
-updatePadding ( bottom, top ) scale =
-    { scale | padding = Edges (toFloat bottom) (toFloat top) }
+postProcessPlot : Plot -> Plot
+postProcessPlot plot =
+    { plot | scales = postProcessScales plot.scales }
+        |> postProcessTranslator
 
 
-updateLength : Int -> Scale -> Scale
-updateLength length scale =
-    { scale | length = toFloat length }
+postProcessTranslator : Plot -> Plot
+postProcessTranslator plot =
+    { plot | scales = postProcessScaleTranslator plot.scales }
 
 
-updateOffset : Int -> Int -> Scale -> Scale
-updateOffset lower upper scale =
-    { scale | offset = Edges (toFloat lower) (toFloat upper) }
+postProcessScaleTranslator : Oriented Scale -> Oriented Scale
+postProcessScaleTranslator ({ x, y } as scales) =
+    { x = { x | toSvgCoords = toSvgCoordsX scales, fromSvgCoords = fromSvgCoordsX scales }
+    , y = { y | toSvgCoords = toSvgCoordsY scales, fromSvgCoords = fromSvgCoordsY scales }
+    }
 
 
-applyBounds : (Float -> Float) -> (Float -> Float) -> Scale -> Scale
-applyBounds toLower toUpper scale =
-    { scale | offset = Edges (toLower scale.bounds.lower) (toUpper scale.bounds.lower) }
+postProcessScales : Oriented Scale -> Oriented Scale
+postProcessScales { x, y } =
+    { x = { x | length = getInnerLength x }
+    , y = { y | length = getInnerLength y }
+    }
+
+
+getInnerLength : Scale -> Float
+getInnerLength scale =
+    scale.lengthTotal - scale.offset.lower - scale.offset.upper
+
+
+flipPlotToOrientation : Orientation -> Plot -> Plot
+flipPlotToOrientation orientation plot =
+    case orientation of
+        X ->
+            plot
+
+        Y ->
+            { plot | scales = { x = plot.scales.y, y = plot.scales.x } }

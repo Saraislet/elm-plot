@@ -39,14 +39,14 @@ view =
         , domainLowest (\y -> y - 1)
         ]
         [ area
-            [ Attributes.stroke pinkStroke
-            , Attributes.fill pinkFill
-            , Attributes.strokeWidth 1
-            , Attributes.interpolation Bezier
+            [ stroke pinkStroke
+            , fill pinkFill
+            , strokeWidth 1
+            , interpolation Bezier
             ]
             data1
         , xAxis
-            [ Attributes.lineStyle [ Attributes.stroke axisColor ]
+            [ lineStyle [ stroke axisColor ]
             , tick [ values (ValuesFromDelta 1) ]
             ]
         ]
@@ -71,7 +71,7 @@ code =
                 ]
                 data1
             , xAxis
-                [ Attributes.lineStyle [ Line.stroke axisColor ]
+                [ lineStyle [ Line.stroke axisColor ]
                 , Axis.tickDelta 1
                 ]
             ]
