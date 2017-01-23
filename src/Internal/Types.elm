@@ -16,8 +16,7 @@ type alias Oriented a =
 
 
 type alias Scale =
-    { values : List Float
-    , ticks : List Float
+    { ticks : List Float
     , bounds : Edges
     , padding : Edges
     , offset : Edges

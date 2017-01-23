@@ -5,62 +5,62 @@ import Plot.Attributes exposing (..)
 import Internal.Types exposing (..)
 
 
-unzipPoints : List Point -> Oriented (List Value)
-unzipPoints points =
-    List.unzip points
-        |> \( x, y ) -> Oriented x y
+-- Finding the bounds of the plot
 
 
-updateValues : List Point -> Oriented Scale -> Oriented Scale
-updateValues points scales =
-    unzipPoints points
-        |> \values ->
-            { x = updateScaleValues values.x scales.x
-            , y = updateScaleValues values.y scales.y
-            }
-
-
-updateScaleValues : List Value -> Scale -> Scale
-updateScaleValues values scale =
-    { scale
-        | values = scale.values ++ values
-        , bounds = strechBounds values scale.bounds
+toBounds : List Value -> Edges
+toBounds values =
+    { lower = getLowest values
+    , upper = getHighest values
     }
 
 
-updateBoundsArea : Oriented Scale -> Oriented Scale
-updateBoundsArea scales =
-    { lower = 0, upper = 0 }
-        |> updateScaleBounds scales.y
-        |> Oriented scales.x
-
-
-updateBoundsBars : List Point -> Oriented Scale -> Oriented Scale
-updateBoundsBars points scales =
-    List.unzip points
-        |> Tuple.first
-        |> toBarXEdges
-        |> updateScaleBounds scales.x
-        |> \scaleX -> Oriented scaleX scales.y
-
-
-toBarXEdges : List Value -> Edges
-toBarXEdges xValues =
-    { lower = getLowest xValues - 0.5
-    , upper = getHighest xValues + 0.5
+foldBounds : Oriented Edges -> Oriented Edges -> Oriented Edges
+foldBounds newBounds oldBounds =
+    { x = foldSingleBounds oldBounds.x newBounds.x
+    , y = foldSingleBounds oldBounds.y newBounds.y
     }
 
 
-updateScaleBounds : Scale -> Edges -> Scale
-updateScaleBounds scale bounds =
-    { scale | bounds = strechBounds [ bounds.lower, bounds.upper ] scale.bounds }
-
-
-strechBounds : List Value -> Edges -> Edges
-strechBounds values bounds =
-    { lower = min bounds.lower (getLowest values)
-    , upper = max bounds.upper (getHighest values)
+foldSingleBounds : Edges -> Edges -> Edges
+foldSingleBounds boundsA boundsB =
+    { lower = min boundsA.lower boundsB.lower
+    , upper = max boundsA.upper boundsB.upper
     }
+
+
+{-| Finds the bounds from a list of points.
+-}
+updateBoundsFromPoints : List Point -> Oriented Edges
+updateBoundsFromPoints points =
+    List.unzip points |> \( xValues, yValues ) -> Oriented (toBounds xValues) (toBounds yValues)
+
+
+{-| The area serie bounds defaults to begin the yAxis at minimum 0.
+-}
+updateBoundsArea : List Point -> Oriented Edges
+updateBoundsArea points =
+    updateBoundsFromPoints points
+        |> addAreaBoundsPadding
+
+
+addAreaBoundsPadding : Oriented Edges -> Oriented Edges
+addAreaBoundsPadding bounds =
+    Oriented bounds.x { lower = min 0 bounds.y.lower, upper = bounds.y.upper }
+
+
+{-| The bars serie bounds adds 0.5 to each side of the xAxis as the bars are
+ centered and we don't want to cut it off.
+-}
+updateBoundsBars : List Point -> Oriented Edges
+updateBoundsBars points =
+    updateBoundsFromPoints points
+        |> addBarsBoundsPadding
+
+
+addBarsBoundsPadding : Oriented Edges -> Oriented Edges
+addBarsBoundsPadding bounds =
+    Oriented { lower = bounds.x.lower - 0.5, upper = bounds.x.upper + 0.5 } bounds.y
 
 
 updateTicks : Orientation -> Oriented Scale -> List Value -> Oriented Scale
@@ -73,9 +73,66 @@ updateTicks orientation scales ticks =
             Oriented scales.x (updateScaleTicks scales.y ticks)
 
 
+getClosest : Float -> Float -> Maybe Float -> Maybe Float
+getClosest value candidate closest =
+    case closest of
+        Just closeValue ->
+            if getDifference value candidate < getDifference value closeValue then
+                Just candidate
+            else
+                Just closeValue
+
+        Nothing ->
+            Just candidate
+
+
+toNearestX : Oriented Scale -> Float -> Maybe Float
+toNearestX scales value =
+    List.foldr (getClosest value) Nothing []
+
+
+postProcessPlot : Plot -> Plot
+postProcessPlot plot =
+    { plot | scales = postProcessScales plot.scales }
+        |> postProcessTranslator
+
+
+postProcessTranslator : Plot -> Plot
+postProcessTranslator plot =
+    { plot | scales = postProcessScaleTranslator plot.scales }
+
+
+postProcessScaleTranslator : Oriented Scale -> Oriented Scale
+postProcessScaleTranslator ({ x, y } as scales) =
+    { x = { x | toSvgCoords = toSvgCoordsX scales, fromSvgCoords = fromSvgCoordsX scales }
+    , y = { y | toSvgCoords = toSvgCoordsY scales, fromSvgCoords = fromSvgCoordsY scales }
+    }
+
+
+postProcessScales : Oriented Scale -> Oriented Scale
+postProcessScales { x, y } =
+    { x = { x | length = getInnerLength x }
+    , y = { y | length = getInnerLength y }
+    }
+
+
+flipPlotToOrientation : Orientation -> Plot -> Plot
+flipPlotToOrientation orientation plot =
+    case orientation of
+        X ->
+            plot
+
+        Y ->
+            { plot | scales = { x = plot.scales.y, y = plot.scales.x } }
+
+
 updateScaleTicks : Scale -> List Value -> Scale
 updateScaleTicks scale ticks =
     { scale | ticks = ticks }
+
+
+
+-- Scalers
 
 
 scaleValue : Scale -> Value -> Value
@@ -110,6 +167,10 @@ toSvgCoordsX scales ( x, y ) =
 toSvgCoordsY : Oriented Scale -> Point -> Point
 toSvgCoordsY scales ( x, y ) =
     toSvgCoordsX scales ( y, x )
+
+
+
+-- Helpers
 
 
 getHighest : List Float -> Float
@@ -160,59 +221,6 @@ getDifference a b =
     abs <| a - b
 
 
-getClosest : Float -> Float -> Maybe Float -> Maybe Float
-getClosest value candidate closest =
-    case closest of
-        Just closeValue ->
-            if getDifference value candidate < getDifference value closeValue then
-                Just candidate
-            else
-                Just closeValue
-
-        Nothing ->
-            Just candidate
-
-
-toNearestX : Oriented Scale -> Float -> Maybe Float
-toNearestX scales value =
-    List.foldr (getClosest value) Nothing scales.x.values
-
-
-postProcessPlot : Plot -> Plot
-postProcessPlot plot =
-    { plot | scales = postProcessScales plot.scales }
-        |> postProcessTranslator
-
-
-postProcessTranslator : Plot -> Plot
-postProcessTranslator plot =
-    { plot | scales = postProcessScaleTranslator plot.scales }
-
-
-postProcessScaleTranslator : Oriented Scale -> Oriented Scale
-postProcessScaleTranslator ({ x, y } as scales) =
-    { x = { x | toSvgCoords = toSvgCoordsX scales, fromSvgCoords = fromSvgCoordsX scales }
-    , y = { y | toSvgCoords = toSvgCoordsY scales, fromSvgCoords = fromSvgCoordsY scales }
-    }
-
-
-postProcessScales : Oriented Scale -> Oriented Scale
-postProcessScales { x, y } =
-    { x = { x | length = getInnerLength x }
-    , y = { y | length = getInnerLength y }
-    }
-
-
 getInnerLength : Scale -> Float
 getInnerLength scale =
     scale.lengthTotal - scale.offset.lower - scale.offset.upper
-
-
-flipPlotToOrientation : Orientation -> Plot -> Plot
-flipPlotToOrientation orientation plot =
-    case orientation of
-        X ->
-            plot
-
-        Y ->
-            { plot | scales = { x = plot.scales.y, y = plot.scales.x } }

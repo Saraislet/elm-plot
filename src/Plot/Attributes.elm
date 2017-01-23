@@ -120,7 +120,6 @@ defaultScale length =
     , ticks = []
     , lengthTotal = length
     , length = length
-    , values = []
     , toSvgCoords = identity
     , fromSvgCoords = identity
     }

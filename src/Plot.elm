@@ -416,42 +416,70 @@ viewElement plot element ( svgViews, htmlViews ) =
 
 applyElements : List (Element msg) -> Plot -> Plot
 applyElements elements plot =
-    { plot
-        | scales = List.foldl toScales plot.scales elements
-        , getHintInfo = getHintInfo elements
+    plot
+        |> addPlotBounds elements
+        |> finishPlotConfig elements
+
+
+
+-- Find bounds
+
+
+addPlotBounds : List (Element msg) -> Plot -> Plot
+addPlotBounds elements plot =
+    let
+        elementBounds =
+            List.foldl collectElementBounds [] elements
+    in
+        case elementBounds of
+            [] ->
+                plot
+
+            firstBound :: rest ->
+                List.foldl foldBounds firstBound rest
+                    |> updatePlotBounds plot.scales
+                    |> updatePlotScales plot
+
+
+updatePlotScales : Plot -> Oriented Scale -> Plot
+updatePlotScales plot scales =
+    { plot | scales = scales }
+
+
+updatePlotBounds : Oriented Scale -> Oriented Edges -> Oriented Scale
+updatePlotBounds { x, y } bounds =
+    { x = { x | bounds = bounds.x }
+    , y = { y | bounds = bounds.y }
     }
 
 
-{-| List.foldl (|>) plot attrs !TODO: This breaks compiler
--}
+collectElementBounds : Element msg -> List (Oriented Edges) -> List (Oriented Edges)
+collectElementBounds element result =
+    case element of
+        Line _ points ->
+            updateBoundsFromPoints points :: result
+
+        Area _ points ->
+            updateBoundsArea points :: result
+
+        Scatter _ points ->
+            updateBoundsFromPoints points :: result
+
+        Bars config _ groups ->
+            updateBoundsBars (BarsInternal.toPoints config groups) :: result
+
+        _ ->
+            result
+
+
+finishPlotConfig : List (Element msg) -> Plot -> Plot
+finishPlotConfig elements plot =
+    { plot | getHintInfo = getHintInfo elements }
+
+
 applyAttributes : List (Attribute Plot) -> Plot -> Plot
 applyAttributes attrs plot =
     List.foldr (<|) plot attrs
-
-
-toScales : Element msg -> Oriented Scale -> Oriented Scale
-toScales element scales =
-    case element of
-        Line _ points ->
-            updateValues points scales
-
-        Area _ points ->
-            updateValues points scales
-                |> updateBoundsArea
-
-        Scatter _ points ->
-            updateValues points scales
-
-        Bars config _ groups ->
-            let
-                points =
-                    BarsInternal.toPoints config groups
-            in
-                updateValues points scales
-                    |> updateBoundsBars points
-
-        _ ->
-            scales
 
 
 getHintInfo : List (Element msg) -> Float -> HintInfo

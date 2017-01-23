@@ -9106,9 +9106,9 @@ var _terezka$elm_plot$Internal_Types$Oriented = F2(
 	function (a, b) {
 		return {x: a, y: b};
 	});
-var _terezka$elm_plot$Internal_Types$Scale = F9(
-	function (a, b, c, d, e, f, g, h, i) {
-		return {values: a, ticks: b, bounds: c, padding: d, offset: e, lengthTotal: f, length: g, toSvgCoords: h, fromSvgCoords: i};
+var _terezka$elm_plot$Internal_Types$Scale = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {ticks: a, bounds: b, padding: c, offset: d, lengthTotal: e, length: f, toSvgCoords: g, fromSvgCoords: h};
 	});
 
 var _terezka$elm_plot$Plot_Attributes$values = F2(
@@ -9433,7 +9433,6 @@ var _terezka$elm_plot$Plot_Attributes$defaultScale = function (length) {
 		ticks: {ctor: '[]'},
 		lengthTotal: length,
 		length: length,
-		values: {ctor: '[]'},
 		toSvgCoords: _elm_lang$core$Basics$identity,
 		fromSvgCoords: _elm_lang$core$Basics$identity
 	};
@@ -9699,62 +9698,12 @@ var _terezka$elm_plot$Plot_Bars$DataTransformers = F2(
 		return {yValues: a, xValue: b};
 	});
 
-var _terezka$elm_plot$Internal_Scale$flipPlotToOrientation = F2(
-	function (orientation, plot) {
-		var _p0 = orientation;
-		if (_p0.ctor === 'X') {
-			return plot;
-		} else {
-			return _elm_lang$core$Native_Utils.update(
-				plot,
-				{
-					scales: {x: plot.scales.y, y: plot.scales.x}
-				});
-		}
-	});
 var _terezka$elm_plot$Internal_Scale$getInnerLength = function (scale) {
 	return (scale.lengthTotal - scale.offset.lower) - scale.offset.upper;
-};
-var _terezka$elm_plot$Internal_Scale$postProcessScales = function (_p1) {
-	var _p2 = _p1;
-	var _p4 = _p2.y;
-	var _p3 = _p2.x;
-	return {
-		x: _elm_lang$core$Native_Utils.update(
-			_p3,
-			{
-				length: _terezka$elm_plot$Internal_Scale$getInnerLength(_p3)
-			}),
-		y: _elm_lang$core$Native_Utils.update(
-			_p4,
-			{
-				length: _terezka$elm_plot$Internal_Scale$getInnerLength(_p4)
-			})
-	};
 };
 var _terezka$elm_plot$Internal_Scale$getDifference = F2(
 	function (a, b) {
 		return _elm_lang$core$Basics$abs(a - b);
-	});
-var _terezka$elm_plot$Internal_Scale$getClosest = F3(
-	function (value, candidate, closest) {
-		var _p5 = closest;
-		if (_p5.ctor === 'Just') {
-			var _p6 = _p5._0;
-			return (_elm_lang$core$Native_Utils.cmp(
-				A2(_terezka$elm_plot$Internal_Scale$getDifference, value, candidate),
-				A2(_terezka$elm_plot$Internal_Scale$getDifference, value, _p6)) < 0) ? _elm_lang$core$Maybe$Just(candidate) : _elm_lang$core$Maybe$Just(_p6);
-		} else {
-			return _elm_lang$core$Maybe$Just(candidate);
-		}
-	});
-var _terezka$elm_plot$Internal_Scale$toNearestX = F2(
-	function (scales, value) {
-		return A3(
-			_elm_lang$core$List$foldr,
-			_terezka$elm_plot$Internal_Scale$getClosest(value),
-			_elm_lang$core$Maybe$Nothing,
-			scales.x.values);
 	});
 var _terezka$elm_plot$Internal_Scale$ceilToNearest = F2(
 	function (precision, value) {
@@ -9765,10 +9714,10 @@ var _terezka$elm_plot$Internal_Scale$pixelsToValue = F3(
 	function (length, range, pixels) {
 		return (range * pixels) / length;
 	});
-var _terezka$elm_plot$Internal_Scale$getRange = function (_p7) {
-	var _p8 = _p7;
-	var _p9 = _p8.bounds;
-	return (_elm_lang$core$Native_Utils.cmp(_p9.upper - _p9.lower, 0) > 0) ? (_p9.upper - _p9.lower) : 1;
+var _terezka$elm_plot$Internal_Scale$getRange = function (_p0) {
+	var _p1 = _p0;
+	var _p2 = _p1.bounds;
+	return (_elm_lang$core$Native_Utils.cmp(_p2.upper - _p2.lower, 0) > 0) ? (_p2.upper - _p2.lower) : 1;
 };
 var _terezka$elm_plot$Internal_Scale$getLowest = function (values) {
 	return A2(
@@ -9798,64 +9747,100 @@ var _terezka$elm_plot$Internal_Scale$getEdgesY = function (points) {
 		A2(_elm_lang$core$List$map, _elm_lang$core$Tuple$second, points));
 };
 var _terezka$elm_plot$Internal_Scale$unScaleValue = F2(
-	function (_p10, v) {
-		var _p11 = _p10;
-		return (((v - _p11.offset.lower) * _terezka$elm_plot$Internal_Scale$getRange(_p11)) / _p11.length) + _p11.bounds.lower;
+	function (_p3, v) {
+		var _p4 = _p3;
+		return (((v - _p4.offset.lower) * _terezka$elm_plot$Internal_Scale$getRange(_p4)) / _p4.length) + _p4.bounds.lower;
 	});
 var _terezka$elm_plot$Internal_Scale$fromSvgCoordsX = F2(
-	function (scales, _p12) {
-		var _p13 = _p12;
+	function (scales, _p5) {
+		var _p6 = _p5;
 		return {
 			ctor: '_Tuple2',
-			_0: A2(_terezka$elm_plot$Internal_Scale$unScaleValue, scales.x, _p13._0),
-			_1: A2(_terezka$elm_plot$Internal_Scale$unScaleValue, scales.y, scales.y.length - _p13._1)
+			_0: A2(_terezka$elm_plot$Internal_Scale$unScaleValue, scales.x, _p6._0),
+			_1: A2(_terezka$elm_plot$Internal_Scale$unScaleValue, scales.y, scales.y.length - _p6._1)
 		};
 	});
 var _terezka$elm_plot$Internal_Scale$fromSvgCoordsY = F2(
-	function (scales, _p14) {
-		var _p15 = _p14;
+	function (scales, _p7) {
+		var _p8 = _p7;
 		return A2(
 			_terezka$elm_plot$Internal_Scale$fromSvgCoordsX,
 			scales,
-			{ctor: '_Tuple2', _0: _p15._1, _1: _p15._0});
+			{ctor: '_Tuple2', _0: _p8._1, _1: _p8._0});
 	});
 var _terezka$elm_plot$Internal_Scale$scaleValue = F2(
-	function (_p16, v) {
-		var _p17 = _p16;
-		return ((v * _p17.length) / _terezka$elm_plot$Internal_Scale$getRange(_p17)) + _p17.offset.lower;
+	function (_p9, v) {
+		var _p10 = _p9;
+		return ((v * _p10.length) / _terezka$elm_plot$Internal_Scale$getRange(_p10)) + _p10.offset.lower;
 	});
 var _terezka$elm_plot$Internal_Scale$toSvgCoordsX = F2(
-	function (scales, _p18) {
-		var _p19 = _p18;
+	function (scales, _p11) {
+		var _p12 = _p11;
 		return {
 			ctor: '_Tuple2',
-			_0: A2(_terezka$elm_plot$Internal_Scale$scaleValue, scales.x, _p19._0 - scales.x.bounds.lower),
-			_1: A2(_terezka$elm_plot$Internal_Scale$scaleValue, scales.y, scales.y.bounds.upper - _p19._1)
+			_0: A2(_terezka$elm_plot$Internal_Scale$scaleValue, scales.x, _p12._0 - scales.x.bounds.lower),
+			_1: A2(_terezka$elm_plot$Internal_Scale$scaleValue, scales.y, scales.y.bounds.upper - _p12._1)
 		};
 	});
 var _terezka$elm_plot$Internal_Scale$toSvgCoordsY = F2(
-	function (scales, _p20) {
-		var _p21 = _p20;
+	function (scales, _p13) {
+		var _p14 = _p13;
 		return A2(
 			_terezka$elm_plot$Internal_Scale$toSvgCoordsX,
 			scales,
-			{ctor: '_Tuple2', _0: _p21._1, _1: _p21._0});
+			{ctor: '_Tuple2', _0: _p14._1, _1: _p14._0});
 	});
-var _terezka$elm_plot$Internal_Scale$postProcessScaleTranslator = function (_p22) {
-	var _p23 = _p22;
-	var _p24 = _p23;
+var _terezka$elm_plot$Internal_Scale$updateScaleTicks = F2(
+	function (scale, ticks) {
+		return _elm_lang$core$Native_Utils.update(
+			scale,
+			{ticks: ticks});
+	});
+var _terezka$elm_plot$Internal_Scale$flipPlotToOrientation = F2(
+	function (orientation, plot) {
+		var _p15 = orientation;
+		if (_p15.ctor === 'X') {
+			return plot;
+		} else {
+			return _elm_lang$core$Native_Utils.update(
+				plot,
+				{
+					scales: {x: plot.scales.y, y: plot.scales.x}
+				});
+		}
+	});
+var _terezka$elm_plot$Internal_Scale$postProcessScales = function (_p16) {
+	var _p17 = _p16;
+	var _p19 = _p17.y;
+	var _p18 = _p17.x;
 	return {
 		x: _elm_lang$core$Native_Utils.update(
-			_p23.x,
+			_p18,
 			{
-				toSvgCoords: _terezka$elm_plot$Internal_Scale$toSvgCoordsX(_p24),
-				fromSvgCoords: _terezka$elm_plot$Internal_Scale$fromSvgCoordsX(_p24)
+				length: _terezka$elm_plot$Internal_Scale$getInnerLength(_p18)
 			}),
 		y: _elm_lang$core$Native_Utils.update(
-			_p23.y,
+			_p19,
 			{
-				toSvgCoords: _terezka$elm_plot$Internal_Scale$toSvgCoordsY(_p24),
-				fromSvgCoords: _terezka$elm_plot$Internal_Scale$fromSvgCoordsY(_p24)
+				length: _terezka$elm_plot$Internal_Scale$getInnerLength(_p19)
+			})
+	};
+};
+var _terezka$elm_plot$Internal_Scale$postProcessScaleTranslator = function (_p20) {
+	var _p21 = _p20;
+	var _p22 = _p21;
+	return {
+		x: _elm_lang$core$Native_Utils.update(
+			_p21.x,
+			{
+				toSvgCoords: _terezka$elm_plot$Internal_Scale$toSvgCoordsX(_p22),
+				fromSvgCoords: _terezka$elm_plot$Internal_Scale$fromSvgCoordsX(_p22)
+			}),
+		y: _elm_lang$core$Native_Utils.update(
+			_p21.y,
+			{
+				toSvgCoords: _terezka$elm_plot$Internal_Scale$toSvgCoordsY(_p22),
+				fromSvgCoords: _terezka$elm_plot$Internal_Scale$fromSvgCoordsY(_p22)
 			})
 	};
 };
@@ -9874,11 +9859,25 @@ var _terezka$elm_plot$Internal_Scale$postProcessPlot = function (plot) {
 				scales: _terezka$elm_plot$Internal_Scale$postProcessScales(plot.scales)
 			}));
 };
-var _terezka$elm_plot$Internal_Scale$updateScaleTicks = F2(
-	function (scale, ticks) {
-		return _elm_lang$core$Native_Utils.update(
-			scale,
-			{ticks: ticks});
+var _terezka$elm_plot$Internal_Scale$getClosest = F3(
+	function (value, candidate, closest) {
+		var _p23 = closest;
+		if (_p23.ctor === 'Just') {
+			var _p24 = _p23._0;
+			return (_elm_lang$core$Native_Utils.cmp(
+				A2(_terezka$elm_plot$Internal_Scale$getDifference, value, candidate),
+				A2(_terezka$elm_plot$Internal_Scale$getDifference, value, _p24)) < 0) ? _elm_lang$core$Maybe$Just(candidate) : _elm_lang$core$Maybe$Just(_p24);
+		} else {
+			return _elm_lang$core$Maybe$Just(candidate);
+		}
+	});
+var _terezka$elm_plot$Internal_Scale$toNearestX = F2(
+	function (scales, value) {
+		return A3(
+			_elm_lang$core$List$foldr,
+			_terezka$elm_plot$Internal_Scale$getClosest(value),
+			_elm_lang$core$Maybe$Nothing,
+			{ctor: '[]'});
 	});
 var _terezka$elm_plot$Internal_Scale$updateTicks = F3(
 	function (orientation, scales, ticks) {
@@ -9895,91 +9894,59 @@ var _terezka$elm_plot$Internal_Scale$updateTicks = F3(
 				A2(_terezka$elm_plot$Internal_Scale$updateScaleTicks, scales.y, ticks));
 		}
 	});
-var _terezka$elm_plot$Internal_Scale$strechBounds = F2(
-	function (values, bounds) {
-		return {
-			lower: A2(
-				_elm_lang$core$Basics$min,
-				bounds.lower,
-				_terezka$elm_plot$Internal_Scale$getLowest(values)),
-			upper: A2(
-				_elm_lang$core$Basics$max,
-				bounds.upper,
-				_terezka$elm_plot$Internal_Scale$getHighest(values))
-		};
-	});
-var _terezka$elm_plot$Internal_Scale$updateScaleBounds = F2(
-	function (scale, bounds) {
-		return _elm_lang$core$Native_Utils.update(
-			scale,
-			{
-				bounds: A2(
-					_terezka$elm_plot$Internal_Scale$strechBounds,
-					{
-						ctor: '::',
-						_0: bounds.lower,
-						_1: {
-							ctor: '::',
-							_0: bounds.upper,
-							_1: {ctor: '[]'}
-						}
-					},
-					scale.bounds)
-			});
-	});
-var _terezka$elm_plot$Internal_Scale$toBarXEdges = function (xValues) {
-	return {
-		lower: _terezka$elm_plot$Internal_Scale$getLowest(xValues) - 0.5,
-		upper: _terezka$elm_plot$Internal_Scale$getHighest(xValues) + 0.5
-	};
-};
-var _terezka$elm_plot$Internal_Scale$updateBoundsBars = F2(
-	function (points, scales) {
-		return function (scaleX) {
-			return A2(_terezka$elm_plot$Internal_Types$Oriented, scaleX, scales.y);
-		}(
-			A2(
-				_terezka$elm_plot$Internal_Scale$updateScaleBounds,
-				scales.x,
-				_terezka$elm_plot$Internal_Scale$toBarXEdges(
-					_elm_lang$core$Tuple$first(
-						_elm_lang$core$List$unzip(points)))));
-	});
-var _terezka$elm_plot$Internal_Scale$updateBoundsArea = function (scales) {
+var _terezka$elm_plot$Internal_Scale$addBarsBoundsPadding = function (bounds) {
 	return A2(
 		_terezka$elm_plot$Internal_Types$Oriented,
-		scales.x,
-		A2(
-			_terezka$elm_plot$Internal_Scale$updateScaleBounds,
-			scales.y,
-			{lower: 0, upper: 0}));
+		{lower: bounds.x.lower - 0.5, upper: bounds.x.upper + 0.5},
+		bounds.y);
 };
-var _terezka$elm_plot$Internal_Scale$updateScaleValues = F2(
-	function (values, scale) {
-		return _elm_lang$core$Native_Utils.update(
-			scale,
-			{
-				values: A2(_elm_lang$core$Basics_ops['++'], scale.values, values),
-				bounds: A2(_terezka$elm_plot$Internal_Scale$strechBounds, values, scale.bounds)
-			});
+var _terezka$elm_plot$Internal_Scale$addAreaBoundsPadding = function (bounds) {
+	return A2(
+		_terezka$elm_plot$Internal_Types$Oriented,
+		bounds.x,
+		{
+			lower: A2(_elm_lang$core$Basics$min, 0, bounds.y.lower),
+			upper: bounds.y.upper
+		});
+};
+var _terezka$elm_plot$Internal_Scale$foldSingleBounds = F2(
+	function (boundsA, boundsB) {
+		return {
+			lower: A2(_elm_lang$core$Basics$min, boundsA.lower, boundsB.lower),
+			upper: A2(_elm_lang$core$Basics$max, boundsA.upper, boundsB.upper)
+		};
 	});
-var _terezka$elm_plot$Internal_Scale$unzipPoints = function (points) {
+var _terezka$elm_plot$Internal_Scale$foldBounds = F2(
+	function (newBounds, oldBounds) {
+		return {
+			x: A2(_terezka$elm_plot$Internal_Scale$foldSingleBounds, oldBounds.x, newBounds.x),
+			y: A2(_terezka$elm_plot$Internal_Scale$foldSingleBounds, oldBounds.y, newBounds.y)
+		};
+	});
+var _terezka$elm_plot$Internal_Scale$toBounds = function (values) {
+	return {
+		lower: _terezka$elm_plot$Internal_Scale$getLowest(values),
+		upper: _terezka$elm_plot$Internal_Scale$getHighest(values)
+	};
+};
+var _terezka$elm_plot$Internal_Scale$updateBoundsFromPoints = function (points) {
 	return function (_p26) {
 		var _p27 = _p26;
-		return A2(_terezka$elm_plot$Internal_Types$Oriented, _p27._0, _p27._1);
+		return A2(
+			_terezka$elm_plot$Internal_Types$Oriented,
+			_terezka$elm_plot$Internal_Scale$toBounds(_p27._0),
+			_terezka$elm_plot$Internal_Scale$toBounds(_p27._1));
 	}(
 		_elm_lang$core$List$unzip(points));
 };
-var _terezka$elm_plot$Internal_Scale$updateValues = F2(
-	function (points, scales) {
-		return function (values) {
-			return {
-				x: A2(_terezka$elm_plot$Internal_Scale$updateScaleValues, values.x, scales.x),
-				y: A2(_terezka$elm_plot$Internal_Scale$updateScaleValues, values.y, scales.y)
-			};
-		}(
-			_terezka$elm_plot$Internal_Scale$unzipPoints(points));
-	});
+var _terezka$elm_plot$Internal_Scale$updateBoundsArea = function (points) {
+	return _terezka$elm_plot$Internal_Scale$addAreaBoundsPadding(
+		_terezka$elm_plot$Internal_Scale$updateBoundsFromPoints(points));
+};
+var _terezka$elm_plot$Internal_Scale$updateBoundsBars = function (points) {
+	return _terezka$elm_plot$Internal_Scale$addBarsBoundsPadding(
+		_terezka$elm_plot$Internal_Scale$updateBoundsFromPoints(points));
+};
 
 var _terezka$elm_plot$Internal_Draw$addDisplacement = F2(
 	function (_p1, _p0) {
@@ -11645,27 +11612,6 @@ var _terezka$elm_plot$Plot$getHintInfo = F2(
 			isLeftSide: true
 		};
 	});
-var _terezka$elm_plot$Plot$toScales = F2(
-	function (element, scales) {
-		var _p3 = element;
-		switch (_p3.ctor) {
-			case 'Line':
-				return A2(_terezka$elm_plot$Internal_Scale$updateValues, _p3._1, scales);
-			case 'Area':
-				return _terezka$elm_plot$Internal_Scale$updateBoundsArea(
-					A2(_terezka$elm_plot$Internal_Scale$updateValues, _p3._1, scales));
-			case 'Scatter':
-				return A2(_terezka$elm_plot$Internal_Scale$updateValues, _p3._1, scales);
-			case 'Bars':
-				var points = A2(_terezka$elm_plot$Internal_Bars$toPoints, _p3._0, _p3._2);
-				return A2(
-					_terezka$elm_plot$Internal_Scale$updateBoundsBars,
-					points,
-					A2(_terezka$elm_plot$Internal_Scale$updateValues, points, scales));
-			default:
-				return scales;
-		}
-	});
 var _terezka$elm_plot$Plot$applyAttributes = F2(
 	function (attrs, plot) {
 		return A3(
@@ -11677,61 +11623,138 @@ var _terezka$elm_plot$Plot$applyAttributes = F2(
 			plot,
 			attrs);
 	});
-var _terezka$elm_plot$Plot$applyElements = F2(
+var _terezka$elm_plot$Plot$finishPlotConfig = F2(
 	function (elements, plot) {
 		return _elm_lang$core$Native_Utils.update(
 			plot,
 			{
-				scales: A3(_elm_lang$core$List$foldl, _terezka$elm_plot$Plot$toScales, plot.scales, elements),
 				getHintInfo: _terezka$elm_plot$Plot$getHintInfo(elements)
 			});
 	});
-var _terezka$elm_plot$Plot$viewElement = F3(
-	function (plot, element, _p4) {
+var _terezka$elm_plot$Plot$collectElementBounds = F2(
+	function (element, result) {
+		var _p3 = element;
+		switch (_p3.ctor) {
+			case 'Line':
+				return {
+					ctor: '::',
+					_0: _terezka$elm_plot$Internal_Scale$updateBoundsFromPoints(_p3._1),
+					_1: result
+				};
+			case 'Area':
+				return {
+					ctor: '::',
+					_0: _terezka$elm_plot$Internal_Scale$updateBoundsArea(_p3._1),
+					_1: result
+				};
+			case 'Scatter':
+				return {
+					ctor: '::',
+					_0: _terezka$elm_plot$Internal_Scale$updateBoundsFromPoints(_p3._1),
+					_1: result
+				};
+			case 'Bars':
+				return {
+					ctor: '::',
+					_0: _terezka$elm_plot$Internal_Scale$updateBoundsBars(
+						A2(_terezka$elm_plot$Internal_Bars$toPoints, _p3._0, _p3._2)),
+					_1: result
+				};
+			default:
+				return result;
+		}
+	});
+var _terezka$elm_plot$Plot$updatePlotBounds = F2(
+	function (_p4, bounds) {
 		var _p5 = _p4;
-		var _p10 = _p5._0;
-		var _p9 = _p5._1;
-		var _p6 = element;
-		switch (_p6.ctor) {
+		return {
+			x: _elm_lang$core$Native_Utils.update(
+				_p5.x,
+				{bounds: bounds.x}),
+			y: _elm_lang$core$Native_Utils.update(
+				_p5.y,
+				{bounds: bounds.y})
+		};
+	});
+var _terezka$elm_plot$Plot$updatePlotScales = F2(
+	function (plot, scales) {
+		return _elm_lang$core$Native_Utils.update(
+			plot,
+			{scales: scales});
+	});
+var _terezka$elm_plot$Plot$addPlotBounds = F2(
+	function (elements, plot) {
+		var elementBounds = A3(
+			_elm_lang$core$List$foldl,
+			_terezka$elm_plot$Plot$collectElementBounds,
+			{ctor: '[]'},
+			elements);
+		var _p6 = elementBounds;
+		if (_p6.ctor === '[]') {
+			return plot;
+		} else {
+			return A2(
+				_terezka$elm_plot$Plot$updatePlotScales,
+				plot,
+				A2(
+					_terezka$elm_plot$Plot$updatePlotBounds,
+					plot.scales,
+					A3(_elm_lang$core$List$foldl, _terezka$elm_plot$Internal_Scale$foldBounds, _p6._0, _p6._1)));
+		}
+	});
+var _terezka$elm_plot$Plot$applyElements = F2(
+	function (elements, plot) {
+		return A2(
+			_terezka$elm_plot$Plot$finishPlotConfig,
+			elements,
+			A2(_terezka$elm_plot$Plot$addPlotBounds, elements, plot));
+	});
+var _terezka$elm_plot$Plot$viewElement = F3(
+	function (plot, element, _p7) {
+		var _p8 = _p7;
+		var _p13 = _p8._0;
+		var _p12 = _p8._1;
+		var _p9 = element;
+		switch (_p9.ctor) {
 			case 'Line':
 				return {
 					ctor: '_Tuple2',
 					_0: {
 						ctor: '::',
-						_0: A3(_terezka$elm_plot$Internal_Line$view, plot, _p6._0, _p6._1),
-						_1: _p10
+						_0: A3(_terezka$elm_plot$Internal_Line$view, plot, _p9._0, _p9._1),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'Area':
 				return {
 					ctor: '_Tuple2',
 					_0: {
 						ctor: '::',
-						_0: A3(_terezka$elm_plot$Internal_Area$view, plot, _p6._0, _p6._1),
-						_1: _p10
+						_0: A3(_terezka$elm_plot$Internal_Area$view, plot, _p9._0, _p9._1),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'Scatter':
 				return {
 					ctor: '_Tuple2',
 					_0: {
 						ctor: '::',
-						_0: A3(_terezka$elm_plot$Internal_Scatter$view, plot, _p6._0, _p6._1),
-						_1: _p10
+						_0: A3(_terezka$elm_plot$Internal_Scatter$view, plot, _p9._0, _p9._1),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'Bars':
 				return {
 					ctor: '_Tuple2',
 					_0: {
 						ctor: '::',
-						_0: A4(_terezka$elm_plot$Internal_Bars$view, plot, _p6._0, _p6._1, _p6._2),
-						_1: _p10
+						_0: A4(_terezka$elm_plot$Internal_Bars$view, plot, _p9._0, _p9._1, _p9._2),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'Axis':
 				return {
@@ -11740,11 +11763,11 @@ var _terezka$elm_plot$Plot$viewElement = F3(
 						ctor: '::',
 						_0: A2(
 							_terezka$elm_plot$Internal_Axis$view,
-							A2(_terezka$elm_plot$Internal_Scale$flipPlotToOrientation, _p6._0.orientation, plot),
-							_p6._0),
-						_1: _p10
+							A2(_terezka$elm_plot$Internal_Scale$flipPlotToOrientation, _p9._0.orientation, plot),
+							_p9._0),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'Grid':
 				return {
@@ -11753,35 +11776,35 @@ var _terezka$elm_plot$Plot$viewElement = F3(
 						ctor: '::',
 						_0: A2(
 							_terezka$elm_plot$Internal_Grid$view,
-							A2(_terezka$elm_plot$Internal_Scale$flipPlotToOrientation, _p6._0.orientation, plot),
-							_p6._0),
-						_1: _p10
+							A2(_terezka$elm_plot$Internal_Scale$flipPlotToOrientation, _p9._0.orientation, plot),
+							_p9._0),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			case 'CustomElement':
 				return {
 					ctor: '_Tuple2',
 					_0: {
 						ctor: '::',
-						_0: _p6._0(plot.scales.x.toSvgCoords),
-						_1: _p10
+						_0: _p9._0(plot.scales.x.toSvgCoords),
+						_1: _p13
 					},
-					_1: _p9
+					_1: _p12
 				};
 			default:
-				var _p7 = _p6._1;
-				if (_p7.ctor === 'Just') {
-					var _p8 = A3(_terezka$elm_plot$Internal_Hint$view, plot, _p6._0, _p7._0);
-					var line = _p8._0;
-					var hint = _p8._1;
+				var _p10 = _p9._1;
+				if (_p10.ctor === 'Just') {
+					var _p11 = A3(_terezka$elm_plot$Internal_Hint$view, plot, _p9._0, _p10._0);
+					var line = _p11._0;
+					var hint = _p11._1;
 					return {
 						ctor: '_Tuple2',
-						_0: {ctor: '::', _0: line, _1: _p10},
-						_1: {ctor: '::', _0: hint, _1: _p9}
+						_0: {ctor: '::', _0: line, _1: _p13},
+						_1: {ctor: '::', _0: hint, _1: _p12}
 					};
 				} else {
-					return {ctor: '_Tuple2', _0: _p10, _1: _p9};
+					return {ctor: '_Tuple2', _0: _p13, _1: _p12};
 				}
 		}
 	});
@@ -11886,36 +11909,36 @@ var _terezka$elm_plot$Plot$viewSvg = F2(
 				_1: views
 			});
 	});
-var _terezka$elm_plot$Plot$plotAttributes = function (_p11) {
-	var _p12 = _p11;
+var _terezka$elm_plot$Plot$plotAttributes = function (_p14) {
+	var _p15 = _p14;
 	return {
 		ctor: '::',
 		_0: _elm_lang$html$Html_Attributes$class('elm-plot'),
 		_1: {
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$id(_p12.id),
+			_0: _elm_lang$html$Html_Attributes$id(_p15.id),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$html$Html_Attributes$style(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_terezka$elm_plot$Plot$sizeStyle(_p12.scales),
-						_p12.style)),
+						_terezka$elm_plot$Plot$sizeStyle(_p15.scales),
+						_p15.style)),
 				_1: {ctor: '[]'}
 			}
 		}
 	};
 };
 var _terezka$elm_plot$Plot$viewPlot = F2(
-	function (plot, _p13) {
-		var _p14 = _p13;
+	function (plot, _p16) {
+		var _p17 = _p16;
 		return A2(
 			_elm_lang$html$Html$div,
 			_terezka$elm_plot$Plot$plotAttributes(plot),
 			{
 				ctor: '::',
-				_0: A2(_terezka$elm_plot$Plot$viewSvg, plot, _p14._0),
-				_1: _p14._1
+				_0: A2(_terezka$elm_plot$Plot$viewSvg, plot, _p17._0),
+				_1: _p17._1
 			});
 	});
 var _terezka$elm_plot$Plot$parsePlot = F2(
@@ -11927,9 +11950,9 @@ var _terezka$elm_plot$Plot$parsePlot = F2(
 	});
 var _terezka$elm_plot$Plot$getPosition = A2(
 	_elm_lang$core$Json_Decode$map,
-	function (_p15) {
-		var _p16 = _p15;
-		return {ctor: '_Tuple2', _0: _p16.left, _1: _p16.top};
+	function (_p18) {
+		var _p19 = _p18;
+		return {ctor: '_Tuple2', _0: _p19.left, _1: _p19.top};
 	},
 	_debois$elm_dom$DOM$boundingClientRect);
 var _terezka$elm_plot$Plot$getPlotPosition = _elm_lang$core$Json_Decode$oneOf(
@@ -11939,7 +11962,7 @@ var _terezka$elm_plot$Plot$getPlotPosition = _elm_lang$core$Json_Decode$oneOf(
 		_1: {
 			ctor: '::',
 			_0: _elm_lang$core$Json_Decode$lazy(
-				function (_p17) {
+				function (_p20) {
 					return _terezka$elm_plot$Plot$getParentPosition;
 				}),
 			_1: {ctor: '[]'}
@@ -11947,13 +11970,13 @@ var _terezka$elm_plot$Plot$getPlotPosition = _elm_lang$core$Json_Decode$oneOf(
 	});
 var _terezka$elm_plot$Plot$getParentPosition = _debois$elm_dom$DOM$parentElement(_terezka$elm_plot$Plot$getPlotPosition);
 var _terezka$elm_plot$Plot$getRelativePosition = F3(
-	function (plot, _p19, _p18) {
-		var _p20 = _p19;
-		var _p21 = _p18;
-		var _p22 = plot.scales.x.fromSvgCoords(
-			{ctor: '_Tuple2', _0: _p20._0 - _p21._0, _1: _p20._1 - _p21._1});
-		var x = _p22._0;
-		var y = _p22._1;
+	function (plot, _p22, _p21) {
+		var _p23 = _p22;
+		var _p24 = _p21;
+		var _p25 = plot.scales.x.fromSvgCoords(
+			{ctor: '_Tuple2', _0: _p23._0 - _p24._0, _1: _p23._1 - _p24._1});
+		var x = _p25._0;
+		var y = _p25._1;
 		return {
 			ctor: '_Tuple2',
 			_0: A2(_terezka$elm_plot$Internal_Scale$toNearestX, plot.scales, x),
@@ -11961,19 +11984,19 @@ var _terezka$elm_plot$Plot$getRelativePosition = F3(
 		};
 	});
 var _terezka$elm_plot$Plot$shouldPositionUpdate = F2(
-	function (_p24, _p23) {
-		var _p25 = _p24;
-		var _p26 = _p23;
-		var _p27 = _p25.position;
-		if (_p27.ctor === 'Nothing') {
+	function (_p27, _p26) {
+		var _p28 = _p27;
+		var _p29 = _p26;
+		var _p30 = _p28.position;
+		if (_p30.ctor === 'Nothing') {
 			return true;
 		} else {
-			return (!_elm_lang$core$Native_Utils.eq(_p27._0._1, _p26._1)) || (!_elm_lang$core$Native_Utils.eq(_p27._0._0, _p26._0));
+			return (!_elm_lang$core$Native_Utils.eq(_p30._0._1, _p29._1)) || (!_elm_lang$core$Native_Utils.eq(_p30._0._0, _p29._0));
 		}
 	});
-var _terezka$elm_plot$Plot$getHoveredValue = function (_p28) {
-	var _p29 = _p28;
-	return _p29._0.position;
+var _terezka$elm_plot$Plot$getHoveredValue = function (_p31) {
+	var _p32 = _p31;
+	return _p32._0.position;
 };
 var _terezka$elm_plot$Plot$toPlotConfig = F2(
 	function (attrs, elements) {
@@ -12157,18 +12180,18 @@ var _terezka$elm_plot$Plot$State = function (a) {
 var _terezka$elm_plot$Plot$initialState = _terezka$elm_plot$Plot$State(
 	{position: _elm_lang$core$Maybe$Nothing});
 var _terezka$elm_plot$Plot$update = F2(
-	function (msg, _p30) {
-		var _p31 = _p30;
-		var _p34 = _p31._0;
-		var _p32 = msg;
-		if (_p32.ctor === 'Hovering') {
-			var _p33 = _p32._0;
-			return A2(_terezka$elm_plot$Plot$shouldPositionUpdate, _p34, _p33) ? _terezka$elm_plot$Plot$State(
+	function (msg, _p33) {
+		var _p34 = _p33;
+		var _p37 = _p34._0;
+		var _p35 = msg;
+		if (_p35.ctor === 'Hovering') {
+			var _p36 = _p35._0;
+			return A2(_terezka$elm_plot$Plot$shouldPositionUpdate, _p37, _p36) ? _terezka$elm_plot$Plot$State(
 				_elm_lang$core$Native_Utils.update(
-					_p34,
+					_p37,
 					{
-						position: _elm_lang$core$Maybe$Just(_p33)
-					})) : _terezka$elm_plot$Plot$State(_p34);
+						position: _elm_lang$core$Maybe$Just(_p36)
+					})) : _terezka$elm_plot$Plot$State(_p37);
 		} else {
 			return _terezka$elm_plot$Plot$State(
 				{position: _elm_lang$core$Maybe$Nothing});
@@ -12191,13 +12214,13 @@ var _terezka$elm_plot$Plot$toMouseOverMsg = F4(
 			plot,
 			{ctor: '_Tuple2', _0: mouseX, _1: mouseY},
 			position);
-		var _p35 = _elm_lang$core$Tuple$first(relativePosition);
-		if (_p35.ctor === 'Just') {
+		var _p38 = _elm_lang$core$Tuple$first(relativePosition);
+		if (_p38.ctor === 'Just') {
 			return _terezka$elm_plot$Plot$Internal(
 				_terezka$elm_plot$Plot$Hovering(
 					{
 						ctor: '_Tuple2',
-						_0: _p35._0,
+						_0: _p38._0,
 						_1: _elm_lang$core$Tuple$second(relativePosition)
 					}));
 		} else {
@@ -12228,8 +12251,8 @@ var _terezka$elm_plot$Plot$plotAttributesInteraction = function (plot) {
 	};
 };
 var _terezka$elm_plot$Plot$viewPlotInteractive = F2(
-	function (plot, _p36) {
-		var _p37 = _p36;
+	function (plot, _p39) {
+		var _p40 = _p39;
 		return A2(
 			_elm_lang$html$Html$div,
 			A2(
@@ -12238,8 +12261,8 @@ var _terezka$elm_plot$Plot$viewPlotInteractive = F2(
 				_terezka$elm_plot$Plot$plotAttributesInteraction(plot)),
 			{
 				ctor: '::',
-				_0: A2(_terezka$elm_plot$Plot$viewSvg, plot, _p37._0),
-				_1: _p37._1
+				_0: A2(_terezka$elm_plot$Plot$viewSvg, plot, _p40._0),
+				_1: _p40._1
 			});
 	});
 var _terezka$elm_plot$Plot$parsePlotInteractive = F2(
