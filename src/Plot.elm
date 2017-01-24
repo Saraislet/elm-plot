@@ -418,6 +418,7 @@ applyElements : List (Element msg) -> Plot -> Plot
 applyElements elements plot =
     plot
         |> addPlotBounds elements
+        |> addAxisTicks elements
         |> finishPlotConfig elements
 
 
@@ -441,18 +442,6 @@ addPlotBounds elements plot =
                     |> updatePlotScales plot
 
 
-updatePlotScales : Plot -> Oriented Scale -> Plot
-updatePlotScales plot scales =
-    { plot | scales = scales }
-
-
-updatePlotBounds : Oriented Scale -> Oriented Edges -> Oriented Scale
-updatePlotBounds { x, y } bounds =
-    { x = { x | bounds = bounds.x }
-    , y = { y | bounds = bounds.y }
-    }
-
-
 collectElementBounds : Element msg -> List (Oriented Edges) -> List (Oriented Edges)
 collectElementBounds element result =
     case element of
@@ -470,6 +459,34 @@ collectElementBounds element result =
 
         _ ->
             result
+
+
+
+-- Get ticks from axis to default for the grid
+
+
+addAxisTicks : List (Element msg) -> Plot -> Plot
+addAxisTicks elements plot =
+    List.foldl
+        (\element plot ->
+            case element of
+                Axis config ->
+                    case config.orientation of
+                        X ->
+                            AxisInternal.getValues config.tick.values plot.scales.x
+                                |> updatePlotTicks config.orientation plot.scales
+                                |> updatePlotScales plot
+
+                        Y ->
+                            AxisInternal.getValues config.tick.values plot.scales.y
+                                |> updatePlotTicks config.orientation plot.scales
+                                |> updatePlotScales plot
+
+                _ ->
+                    plot
+        )
+        plot
+        elements
 
 
 finishPlotConfig : List (Element msg) -> Plot -> Plot

@@ -5,7 +5,20 @@ import Plot.Attributes exposing (..)
 import Internal.Types exposing (..)
 
 
+updatePlotScales : Plot -> Oriented Scale -> Plot
+updatePlotScales plot scales =
+    { plot | scales = scales }
+
+
+
 -- Finding the bounds of the plot
+
+
+updatePlotBounds : Oriented Scale -> Oriented Edges -> Oriented Scale
+updatePlotBounds { x, y } bounds =
+    { x = { x | bounds = bounds.x }
+    , y = { y | bounds = bounds.y }
+    }
 
 
 toBounds : List Value -> Edges
@@ -60,17 +73,28 @@ updateBoundsBars points =
 
 addBarsBoundsPadding : Oriented Edges -> Oriented Edges
 addBarsBoundsPadding bounds =
-    Oriented { lower = bounds.x.lower - 0.5, upper = bounds.x.upper + 0.5 } bounds.y
+    Oriented
+        { lower = bounds.x.lower - 0.5, upper = bounds.x.upper + 0.5 }
+        { lower = 0, upper = bounds.y.upper }
 
 
-updateTicks : Orientation -> Oriented Scale -> List Value -> Oriented Scale
-updateTicks orientation scales ticks =
+
+-- Collect ticks for grid defaults
+
+
+updatePlotTicks : Orientation -> Oriented Scale -> List Value -> Oriented Scale
+updatePlotTicks orientation scales ticks =
     case orientation of
         X ->
             Oriented (updateScaleTicks scales.x ticks) scales.y
 
         Y ->
             Oriented scales.x (updateScaleTicks scales.y ticks)
+
+
+updateScaleTicks : Scale -> List Value -> Scale
+updateScaleTicks scale ticks =
+    { scale | ticks = ticks }
 
 
 getClosest : Float -> Float -> Maybe Float -> Maybe Float
@@ -124,11 +148,6 @@ flipPlotToOrientation orientation plot =
 
         Y ->
             { plot | scales = { x = plot.scales.y, y = plot.scales.x } }
-
-
-updateScaleTicks : Scale -> List Value -> Scale
-updateScaleTicks scale ticks =
-    { scale | ticks = ticks }
 
 
 

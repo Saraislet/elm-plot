@@ -97,7 +97,7 @@ view model =
     div
         [ class "view" ]
         [ viewTitle
-          --, viewExampleLarge model
+        , viewExampleLarge model
         , div [] (List.map (viewExample model) examples)
         , viewFooter
         ]
@@ -237,6 +237,10 @@ port highlight : () -> Cmd msg
 
 examples : List (PlotExample msg)
 examples =
+    []
+
+
+examples2 =
     [ PlotSmooth.plotExample
     , PlotBars.plotExample
     , PlotHint.plotExample

@@ -4,6 +4,7 @@ module Internal.Axis
         , getAxisPosition
         , getValues
         , getDelta
+        , toTickValues
         )
 
 import Internal.Tick as Tick
@@ -193,11 +194,6 @@ filterValues plot config values =
 isCrossing : Plot -> Float -> Bool
 isCrossing plot value =
     not <| List.member value plot.scales.y.ticks
-
-
-
--- Remember we always assume we're working with the x-axis. scale.x is therefore
--- just the scale we work with. It will also be the right one for the y-axis.
 
 
 toTickValues : Plot -> Axis msg -> List Value
